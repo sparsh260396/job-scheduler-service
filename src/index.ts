@@ -1,14 +1,14 @@
-import express from "express";
+import express from 'express';
 
 const app = express();
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
 });
 
-app.get("/hello", (_req, res) => {
-  res.send("Hello from TypeScript + Express 👋");
+app.get('/hello', (_req, res) => {
+  res.send('Hello from TypeScript + Express 👋');
 });
 
 const port = process.env.PORT ?? 3000;
