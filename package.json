@@ -2,9 +2,13 @@
   "name": "job-scheduler-service",
   "version": "1.0.0",
   "description": "This service is responsible for running scheduled jobs",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "eslint . --ext .ts"
   },
   "repository": {
     "type": "git",
@@ -13,7 +17,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/sparsh260396/job-scheduler-service/issues"
   },
@@ -22,6 +26,7 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@types/express": "^5.0.3",
     "@types/node": "^24.7.2",
     "eslint": "^9.37.0",
@@ -29,6 +34,7 @@
     "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.6.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.1"
   }
 }
