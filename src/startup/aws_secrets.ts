@@ -1,0 +1,35 @@
+import {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from '@aws-sdk/client-secrets-manager';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+async function fetchAwsSecrets(): Promise<void> {
+  const secretId = process.env.AWS_SECRETS_ID;
+  const region = process.env.AWS_REGION;
+  if (!secretId || !region) {
+    return;
+  }
+  const client = new SecretsManagerClient({ region });
+  const cmd = new GetSecretValueCommand({ SecretId: secretId });
+  try {
+    const res = await client.send(cmd);
+    if (res.SecretString) {
+      const parsed = JSON.parse(res.SecretString);
+      for (const [k, v] of Object.entries(parsed)) {
+        // [IMPORTANT] do not overwrite already-set env vars (local .env should take precedence)
+        if (!process.env[k]) process.env[k] = String(v);
+      }
+    }
+  } catch (err) {
+    console.error('failed to fetch aws secrets:', (err as Error).message);
+  }
+}
+
+export async function initConfig(): Promise<void> {
+  if (process.env.USE_AWS_SECRETS === 'true') {
+    await fetchAwsSecrets();
+  }
+}
