@@ -3,6 +3,7 @@ import {
   SecretsManagerClient,
 } from '@aws-sdk/client-secrets-manager';
 import dotenv from 'dotenv';
+import { Logger } from '../common/logger';
 
 dotenv.config();
 
@@ -23,8 +24,11 @@ async function fetchAwsSecrets(): Promise<void> {
         if (!process.env[k]) process.env[k] = String(v);
       }
     }
-  } catch (err) {
-    console.error('failed to fetch aws secrets:', (err as Error).message);
+  } catch (error: any) {
+    Logger.error({
+      message: 'failed to fetch aws secrets',
+      error_message: error.message,
+    });
   }
 }
 
