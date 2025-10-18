@@ -1,6 +1,33 @@
 import pino from 'pino';
 import { RequestContext } from '../middlewares/request_context';
-import { LoggingData } from './interface';
+
+interface LoggingData {
+  http_method?: string;
+  url?: string;
+  request_body?: string;
+  duration_ms?: number;
+  status_code?: number;
+  message?: string;
+  error_stack?: string;
+  error_message?: string;
+  lead_id?: string;
+  anonymous_lead_id?: string;
+  client_code?: string;
+  chat_entity_id?: string;
+  chat_entity_type?: string;
+  key1?: string;
+  key1_value?: string;
+  key2?: string;
+  key2_value?: string;
+  key3?: string;
+  key3_value?: string;
+  num_key1?: string;
+  num_key1_value?: number;
+  num_key2?: string;
+  num_key2_value?: number;
+  num_key3?: string;
+  num_key3_value?: number;
+}
 
 function getCallerInfo(depth = 3) {
   const err = new Error();
@@ -37,24 +64,24 @@ function buildLogObject(level: string, data: LoggingData) {
   return { ...base, ...data };
 }
 
-const logInfo = (data: LoggingData) => {
+const info = (data: LoggingData) => {
   const obj = buildLogObject('INFO', data);
   logger.info(obj, data.message);
 };
 
-const logWarning = (data: LoggingData) => {
+const warning = (data: LoggingData) => {
   const obj = buildLogObject('WARN', data);
   logger.warn(obj, data.message);
 };
 
-const logError = (data: LoggingData) => {
+const error = (data: LoggingData) => {
   const obj = buildLogObject('ERROR', data);
   logger.error(obj, data.message);
 };
 
-const logDebug = (data: LoggingData) => {
+const debug = (data: LoggingData) => {
   const obj = buildLogObject('DEBUG', data);
   logger.info(obj, data.message);
 };
 
-export const Logger = { logInfo, logWarning, logError, logDebug };
+export const Logger = { info, warning, error, debug };

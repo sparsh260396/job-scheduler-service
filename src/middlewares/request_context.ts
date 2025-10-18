@@ -16,6 +16,7 @@ const RequestContext = {
       (request.headers['request-id'] as string) ||
       crypto.randomUUID();
     const store: Store = { requestId };
+    response.setHeader('x-request-id', requestId);
     als.run(store, () => next());
   },
 
