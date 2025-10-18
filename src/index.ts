@@ -5,6 +5,7 @@ import { initConfig } from './startup/aws_secrets';
 const app = express();
 
 app.use(express.json());
+
 app.use(RequestContext.middleware);
 
 app.get('/health', (request: Request, response: Response) => {
