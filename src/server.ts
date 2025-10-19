@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import mongoose from 'mongoose';
 import { buildApp } from './app';
 import { Logger } from './common/logger';

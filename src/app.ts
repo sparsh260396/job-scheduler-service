@@ -24,9 +24,7 @@ export function buildApp() {
     }),
   );
   app.use(requestLogger);
-
   setupRoutes(app);
-
   app.use(notFound);
   app.use(errorHandler);
   return app;
