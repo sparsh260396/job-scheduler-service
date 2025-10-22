@@ -16,12 +16,14 @@ async function fetchAwsSecrets(): Promise<void> {
   const client = new SecretsManagerClient({ region });
   const cmd = new GetSecretValueCommand({ SecretId: secretId });
   try {
-    const res = await client.send(cmd);
-    if (res.SecretString) {
-      const parsed = JSON.parse(res.SecretString);
+    const response = await client.send(cmd);
+    if (response.SecretString) {
+      const parsed = JSON.parse(response.SecretString);
       for (const [k, v] of Object.entries(parsed)) {
         // [IMPORTANT] do not overwrite already-set env vars (local .env should take precedence)
-        if (!process.env[k]) process.env[k] = String(v);
+        if (!process.env[k]) {
+          process.env[k] = String(v);
+        }
       }
     }
   } catch (error: any) {
