@@ -1,7 +1,10 @@
+import { isEmpty, isNil } from 'lodash';
 import moment from 'moment';
+import { HttpClient } from '../../common/http_client';
+import { Logger } from '../../common/logger';
+import { THRESHOLD_SECONDS } from './constants';
 import { JobRespository } from './repository';
 import { Job, JobStatus, ScheduleJobInput } from './types';
-import { THREE_HUNDRED_SECONDS } from './constants';
 
 const scheduleJob = async (input: ScheduleJobInput): Promise<Job> => {
   const { delayInSeconds, url, payload } = input;
@@ -13,10 +16,52 @@ const scheduleJob = async (input: ScheduleJobInput): Promise<Job> => {
     status: JobStatus.SCHEDULED,
     retryCount: 0,
   });
-  if (delayInSeconds <= THREE_HUNDRED_SECONDS) {
+  if (delayInSeconds <= THRESHOLD_SECONDS) {
     // additional step of adding to queue directly
   }
   return createdJobDocument;
 };
 
-export const SchedulerService = { scheduleJob };
+const handleJob = async (jobId: string): Promise<void> => {
+  Logger.info({
+    message: 'started processing job',
+    key1: 'job',
+    key1_value: jobId,
+  });
+  const jobDetails = await JobRespository.findJobById(jobId);
+  if (isEmpty(jobDetails)) {
+    Logger.error({
+      key1: 'jobId',
+      key1_value: jobId,
+      message: 'no job details found',
+    });
+    return;
+  }
+  const { status, url, payload } = jobDetails;
+  if (status === JobStatus.CANCELLED) {
+    Logger.info({
+      key1: 'jobId',
+      key1_value: jobId,
+      message: 'job has been cancelled, not proceeding further',
+    });
+    return;
+  }
+  try {
+    await HttpClient.post(url, payload, {
+      headers: {
+        'x-idempotency-key': jobId,
+      },
+    });
+    await JobRespository.updateJobStatus(jobId, JobStatus.SUCCESS);
+  } catch (err: any) {
+    Logger.error({
+      message: 'failed to complete job',
+      key1: 'job',
+      key1_value: jobId,
+      error_message: err.message,
+    });
+    await JobRespository.updateJobStatus(jobId, JobStatus.FAILURE);
+  }
+};
+
+export const SchedulerService = { scheduleJob, handleJob };

@@ -15,10 +15,6 @@ const JobSchema = new Schema<Job>(
       enum: JobStatus,
       required: true,
     },
-    retryCount: {
-      type: Number,
-      required: true,
-    },
     callbackTime: {
       type: Date,
       required: true,
@@ -29,4 +25,7 @@ const JobSchema = new Schema<Job>(
   },
 );
 
-export const JobModel = mongoose.model<Job>('scheduled_internal_job', JobSchema);
+export const JobModel = mongoose.model<Job>(
+  'scheduled_internal_job',
+  JobSchema,
+);

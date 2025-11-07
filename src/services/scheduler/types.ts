@@ -17,7 +17,6 @@ interface Job extends Document {
   url: string;
   payload: object;
   status: JobStatus;
-  retryCount: number;
   callbackTime: Date;
   createdAt: Date;
   updatedAt: Date;

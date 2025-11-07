@@ -1,10 +1,10 @@
-import { isNil } from 'lodash';
+import { isEmpty, isNil } from 'lodash';
 import { ScheduleJobInput } from './types';
 import { HttpError } from '../../common/http_error';
 
 const validateScheduleJobInput = (input: ScheduleJobInput) => {
   const { url, delayInSeconds } = input;
-  if (!url) {
+  if (isEmpty(url)) {
     throw new HttpError(400, 'url is required');
   }
   if (isNil(delayInSeconds)) {

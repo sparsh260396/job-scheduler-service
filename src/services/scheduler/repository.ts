@@ -1,5 +1,5 @@
 import { JobModel } from './model';
-import { Job } from './types';
+import { Job, JobStatus } from './types';
 
 const createJob = async (job: {
   url: string;
@@ -11,6 +11,19 @@ const createJob = async (job: {
   return await JobModel.create(job);
 };
 
+const findJobById = async (jobId: string): Promise<Job | null> => {
+  return await JobModel.findOne({ jobId });
+};
+
+const updateJobStatus = async (
+  jobId: string,
+  status: JobStatus,
+): Promise<Job | null> => {
+  return await JobModel.findOneAndUpdate({ jobId }, { status });
+};
+
 export const JobRespository = {
   createJob,
+  findJobById,
+  updateJobStatus,
 };
