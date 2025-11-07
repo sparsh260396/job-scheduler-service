@@ -67,4 +67,15 @@ const handleJob = async (jobId: string): Promise<void> => {
   }
 };
 
+const processJobs = async () => {
+  const shouldRunCron = process.env.SHOULD_RUN_PROCESS_JOB_CRON!;
+  if (!shouldRunCron) {
+    Logger.warning({
+      message: 'process job cron not allowed to run',
+    });
+    return;
+  }
+  // take the timestamp approach to be consistent
+};
+
 export const SchedulerService = { scheduleJob, handleJob };
