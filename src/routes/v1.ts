@@ -1,7 +1,10 @@
 import { Router } from 'express';
 
+import scheduler from '../services/scheduler';
+
 const v1 = Router();
-[].forEach(({ basePath, router }) => {
+
+[scheduler].forEach(({ basePath, router }) => {
   v1.use(basePath, router);
 });
 

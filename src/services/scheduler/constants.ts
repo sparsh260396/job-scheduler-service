@@ -1,0 +1,3 @@
+const THRESHOLD_SECONDS = 300;
+
+export { THRESHOLD_SECONDS };
