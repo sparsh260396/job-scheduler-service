@@ -10,8 +10,8 @@ export async function scheduleJob(
   try {
     const requestBody = request.body;
     validateScheduleJobInput(requestBody);
-    const data = await SchedulerService.scheduleJob(requestBody);
-    response.status(201).json(data);
+    const responseBody = await SchedulerService.scheduleJob(requestBody);
+    response.status(201).json(responseBody);
   } catch (err) {
     next(err);
   }
