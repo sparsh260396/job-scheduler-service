@@ -1,5 +1,5 @@
 import { JobModel } from './model';
-import { Job, JobStatus } from './types';
+import { Job, JobDocument, JobStatus } from './types';
 
 const createJob = async (job: {
   url: string;
@@ -7,8 +7,14 @@ const createJob = async (job: {
   callbackTime: Date;
   status: string;
   retryCount: number;
-}): Promise<Job> => {
-  return await JobModel.create(job);
+}): Promise<JobDocument> => {
+  const createdJobDocument = await JobModel.create(job);
+  return {
+    jobId: createdJobDocument._id.toString(),
+    url: createdJobDocument.url,
+    status: createdJobDocument.status,
+    callbackTime: createdJobDocument.callbackTime,
+  };
 };
 
 const findJobById = async (jobId: string): Promise<Job | null> => {

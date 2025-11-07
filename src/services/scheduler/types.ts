@@ -22,4 +22,13 @@ interface Job extends Document {
   updatedAt: Date;
 }
 
-export { Job, JobStatus, ScheduleJobInput };
+interface JobDocument {
+  jobId: string;
+  url: string;
+  status: JobStatus;
+  callbackTime: Date;
+}
+
+type ScheduleJobOutput = JobDocument;
+
+export { Job, JobDocument, JobStatus, ScheduleJobInput, ScheduleJobOutput };

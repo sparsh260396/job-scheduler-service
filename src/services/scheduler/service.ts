@@ -1,15 +1,18 @@
-import { isEmpty, isNil } from 'lodash';
+import { isEmpty } from 'lodash';
 import moment from 'moment';
 import { HttpClient } from '../../common/http_client';
 import { Logger } from '../../common/logger';
+import { enqueueJob } from '../../sqs/producers/job_processor';
 import { THRESHOLD_SECONDS } from './constants';
 import { JobRespository } from './repository';
-import { Job, JobStatus, ScheduleJobInput } from './types';
+import { JobStatus, ScheduleJobInput, ScheduleJobOutput } from './types';
 
-const scheduleJob = async (input: ScheduleJobInput): Promise<Job> => {
+const scheduleJob = async (
+  input: ScheduleJobInput,
+): Promise<ScheduleJobOutput> => {
   const { delayInSeconds, url, payload } = input;
   const callbackTimeStamp = moment().add(delayInSeconds, 'second');
-  const createdJobDocument = await JobRespository.createJob({
+  const createdJob = await JobRespository.createJob({
     url,
     payload,
     callbackTime: callbackTimeStamp.toDate(),
@@ -17,9 +20,9 @@ const scheduleJob = async (input: ScheduleJobInput): Promise<Job> => {
     retryCount: 0,
   });
   if (delayInSeconds <= THRESHOLD_SECONDS) {
-    // additional step of adding to queue directly
+    await enqueueJob({ jobId: createdJob.jobId });
   }
-  return createdJobDocument;
+  return createdJob;
 };
 
 const handleJob = async (jobId: string): Promise<void> => {

@@ -1,5 +1,5 @@
 import { SchedulerService } from '../../../services/scheduler/service';
-import { JobProcessorInput } from './types';
+import { JobProcessorInput } from '../../types';
 
 const handleJobProcessor = async (input: JobProcessorInput): Promise<void> => {
   return SchedulerService.handleJob(input.jobId);
