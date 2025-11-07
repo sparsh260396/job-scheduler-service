@@ -29,7 +29,7 @@ interface LoggingData {
   num_key3_value?: number;
 }
 
-function getCallerInfo(depth = 3) {
+const getCallerInfo = (depth = 3) => {
   const err = new Error();
   const stack = err.stack ? err.stack.split('\n').map((s) => s.trim()) : [];
   const frame = stack[depth] || '';
@@ -40,17 +40,17 @@ function getCallerInfo(depth = 3) {
   const ln = parseInt(m[3], 10) || 0;
   const fl = fp.split('/').pop() || fp;
   return { fl, fn, ln, fp };
-}
+};
 
-function formatTimestamp() {
+const formatTimestamp = () => {
   const d = new Date();
   const iso = d.toISOString();
   return iso.replace('T', ' ').replace('Z', '');
-}
+};
 
 const logger = pino({ base: null });
 
-function buildLogObject(level: string, data: LoggingData) {
+const buildLogObject = (level: string, data: LoggingData) => {
   const caller = getCallerInfo(4);
   const base: Record<string, any> = {
     ts: formatTimestamp(),
@@ -62,7 +62,7 @@ function buildLogObject(level: string, data: LoggingData) {
     fp: caller.fp,
   };
   return { ...base, ...data };
-}
+};
 
 const info = (data: LoggingData) => {
   const obj = buildLogObject('INFO', data);

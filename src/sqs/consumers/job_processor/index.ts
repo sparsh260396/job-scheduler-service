@@ -4,7 +4,7 @@ import { Logger } from '../../../common/logger';
 import { SqsClient } from '../../sqsClient';
 import { handleJobProcessor } from './handler';
 
-export function startJobProcessorConsumer() {
+const startJobProcessorConsumer = () => {
   const queueUrl = process.env.SQS_JOB_PROCESSOR_URL!;
   const consumer = Consumer.create({
     queueUrl,
@@ -39,4 +39,6 @@ export function startJobProcessorConsumer() {
   consumer.start();
 
   Logger.info({ message: 'Job processor consumer started succesfully' });
-}
+};
+
+export { startJobProcessorConsumer };

@@ -10,7 +10,7 @@ const REDACT = new Set([
   'refreshToken',
 ]);
 
-function sanitizeBody(body: any) {
+const sanitizeBody = (body: any) => {
   if (!body || typeof body !== 'object') return body;
   const copy: any = Array.isArray(body) ? [...body] : { ...body };
   for (const k of Object.keys(copy)) {
@@ -20,13 +20,13 @@ function sanitizeBody(body: any) {
     }
   }
   return copy;
-}
+};
 
-export function requestLogger(
+const requestLogger = (
   request: Request,
   response: Response,
   next: NextFunction,
-) {
+) => {
   if (request.path === '/health') return next();
   const startTime = process.hrtime.bigint();
   const shouldLogBody =
@@ -49,4 +49,6 @@ export function requestLogger(
     });
   });
   next();
-}
+};
+
+export { requestLogger };
