@@ -8,7 +8,7 @@ const startJobProcessorConsumer = () => {
   const queueUrl = process.env.SQS_JOB_PROCESSOR_URL!;
   const consumer = Consumer.create({
     queueUrl,
-    handleMessage: async (message: Message): Promise<Message | undefined> => {
+    handleMessage: async (message: Message): Promise<Message | undefined> => { // change to parallel processing
       const body = JSON.parse(message.Body!);
       try {
         await handleJobProcessor(body);
@@ -22,6 +22,7 @@ const startJobProcessorConsumer = () => {
       return Promise.resolve(undefined);
     },
     sqs: SqsClient,
+    batchSize: 10,
   });
 
   consumer.on('error', (err: any) => {

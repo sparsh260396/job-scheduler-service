@@ -29,6 +29,35 @@ interface JobDocument {
   callbackTime: Date;
 }
 
+enum JobSchedulerRunStatus {
+  IN_PROGRESS = 'inProgress',
+  COMPLETED = 'completed',
+}
+
+interface JobSchedulerRunDetails {
+  endTimeStamp: Date;
+  status: JobSchedulerRunStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface JobSchedulerRunDetailsDocument {
+  endTimeStamp: Date;
+  status: JobSchedulerRunStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  runId: string;
+}
+
 type ScheduleJobOutput = JobDocument;
 
-export { Job, JobDocument, JobStatus, ScheduleJobInput, ScheduleJobOutput };
+export {
+  Job,
+  JobDocument,
+  JobSchedulerRunDetails,
+  JobSchedulerRunStatus,
+  JobStatus,
+  ScheduleJobInput,
+  ScheduleJobOutput,
+  JobSchedulerRunDetailsDocument,
+};

@@ -4,8 +4,14 @@ import { HttpClient } from '../../common/http_client';
 import { Logger } from '../../common/logger';
 import { enqueueJob } from '../../sqs/producers/job_processor';
 import { THRESHOLD_SECONDS } from './constants';
-import { JobRespository } from './repository';
-import { JobStatus, ScheduleJobInput, ScheduleJobOutput } from './types';
+import { JobRespository } from './repositories/job.repository';
+import { JobSchedulerRunDetailsRepository } from './repositories/job_run_details.repository';
+import {
+  JobSchedulerRunStatus,
+  JobStatus,
+  ScheduleJobInput,
+  ScheduleJobOutput,
+} from './types';
 
 const scheduleJob = async (
   input: ScheduleJobInput,
@@ -20,6 +26,8 @@ const scheduleJob = async (
     retryCount: 0,
   });
   if (delayInSeconds <= THRESHOLD_SECONDS) {
+    // this will need to change
+    // update the status of job to in-progress so it doesn't get picked up by the cron
     await enqueueJob({ jobId: createdJob.jobId });
   }
   return createdJob;
@@ -68,6 +76,13 @@ const handleJob = async (jobId: string): Promise<void> => {
 };
 
 const processJobs = async () => {
+  const getLastCompletedJobTime = (): Date => {
+    if (isEmpty(lastCompletedRunDetails)) {
+      return moment('2025-10-08').toDate();
+    }
+    return lastCompletedRunDetails.endTimeStamp;
+  };
+
   const shouldRunCron = process.env.SHOULD_RUN_PROCESS_JOB_CRON!;
   if (!shouldRunCron) {
     Logger.warning({
@@ -75,7 +90,27 @@ const processJobs = async () => {
     });
     return;
   }
-  // take the timestamp approach to be consistent
+  const lastCompletedRunDetails =
+    await JobSchedulerRunDetailsRepository.getLastCompletedRun();
+  const startTime = getLastCompletedJobTime();
+  const endTime = moment().add(THRESHOLD_SECONDS, 'seconds').toDate();
+  const jobsBetweenRange = await JobRespository.getScheduledJobBetweenTimeRange(
+    startTime,
+    endTime,
+  );
+  const { runId } =
+    await JobSchedulerRunDetailsRepository.createRunDetails(endTime);
+  await JobRespository.updateJobBulk(
+    jobsBetweenRange.map((job) => job.jobId),
+    JobStatus.IN_PROGRESS,
+  );
+  jobsBetweenRange.forEach((job) => {
+    enqueueJob({ jobId: job.jobId });
+  });
+  await JobSchedulerRunDetailsRepository.updateRunStatus(
+    startTime,
+    JobSchedulerRunStatus.COMPLETED,
+  );
 };
 
-export const SchedulerService = { scheduleJob, handleJob };
+export const SchedulerService = { scheduleJob, handleJob, processJobs };

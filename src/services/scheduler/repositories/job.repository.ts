@@ -1,5 +1,5 @@
-import { JobModel } from './model';
-import { Job, JobDocument, JobStatus } from './types';
+import { JobModel } from '../models/job.model';
+import { Job, JobDocument, JobStatus } from '../types';
 
 const createJob = async (job: {
   url: string;
@@ -25,11 +25,27 @@ const updateJobStatus = async (
   jobId: string,
   status: JobStatus,
 ): Promise<Job | null> => {
-  return await JobModel.findOneAndUpdate({ jobId }, { status });
+  return JobModel.findOneAndUpdate({ jobId }, { status });
+};
+
+const updateJobBulk = async (jobIds: string[], status: JobStatus) => {
+  JobModel.updateMany({ _id: { $in: jobIds } }, { status });
+};
+
+const getScheduledJobBetweenTimeRange = async (
+  startTime: Date,
+  endTime: Date,
+): Promise<JobDocument[]> => {
+  return JobModel.find({
+    createdAt: { $gt: startTime, $lte: endTime },
+    status: JobStatus.SCHEDULED,
+  });
 };
 
 export const JobRespository = {
   createJob,
   findJobById,
   updateJobStatus,
+  getScheduledJobBetweenTimeRange,
+  updateJobBulk,
 };
