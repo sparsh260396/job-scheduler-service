@@ -1,4 +1,4 @@
-import { Message } from '@aws-sdk/client-sqs';
+import { DeleteMessageCommand, Message } from '@aws-sdk/client-sqs';
 import { Consumer } from 'sqs-consumer';
 import { Logger } from '../../../common/logger';
 import { RequestContext } from '../../../middlewares/request_context';
@@ -20,7 +20,15 @@ const startJobProcessorConsumer = () => {
             message: 'error processing message',
             key1: 'messageDetails',
             key1_value: JSON.stringify(message),
+            error_message: err.message,
           });
+        } finally {
+          await SqsClient.send(
+            new DeleteMessageCommand({
+              QueueUrl: queueUrl,
+              ReceiptHandle: message.ReceiptHandle,
+            }),
+          );
         }
         return Promise.resolve(undefined);
       });

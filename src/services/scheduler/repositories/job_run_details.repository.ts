@@ -13,6 +13,10 @@ const getLastRunByStatus = async (
   }).sort({ createdAt: -1 });
 };
 
+const getLastRunDetails = async (): Promise<JobSchedulerRunDetails | null> => {
+  return JobSchedulerRunDetailsModel.findOne({}).sort({ createdAt: -1 });
+};
+
 const createRunDetails = async (
   endTime: Date,
 ): Promise<JobSchedulerRunDetailsDocument> => {
@@ -46,4 +50,5 @@ export const JobSchedulerRunDetailsRepository = {
   getLastRunByStatus,
   createRunDetails,
   updateRunStatus,
+  getLastRunDetails,
 };

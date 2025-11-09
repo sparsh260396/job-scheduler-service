@@ -7,7 +7,7 @@ interface ScheduleJobInput {
 
 enum JobStatus {
   SUCCESS = 'success',
-  FAILURE = 'failure',
+  FAILED = 'failed',
   CANCELLED = 'cancelled',
   IN_PROGRESS = 'inProgress',
   SCHEDULED = 'scheduled',
@@ -27,6 +27,7 @@ interface JobDocument {
   url: string;
   status: JobStatus;
   callbackTime: Date;
+  payload: object;
 }
 
 enum JobSchedulerRunStatus {

@@ -13,14 +13,22 @@ import {
   ScheduleJobOutput,
 } from './types';
 
+const enqueueJobWithDelay = (jobId: string, callbackTime: Date) => {
+  const delaySeconds =
+    moment(callbackTime).diff(moment(), 'seconds') > 0
+      ? moment(callbackTime).diff(moment(), 'seconds')
+      : 0;
+  enqueueJob({ jobId }, delaySeconds);
+};
+
 const scheduleJob = async (
   input: ScheduleJobInput,
 ): Promise<ScheduleJobOutput> => {
   const isJobInBetweenRunningJob = () => {
-    if (isEmpty(latestInProgressRun)) {
+    if (isEmpty(latestRun)) {
       return false;
     }
-    const { endTimeStamp } = latestInProgressRun;
+    const { endTimeStamp } = latestRun;
     return moment(callbackTimeStamp).isSameOrBefore(moment(endTimeStamp));
   };
 
@@ -33,17 +41,10 @@ const scheduleJob = async (
     status: JobStatus.SCHEDULED,
     retryCount: 0,
   });
-  const latestInProgressRun =
-    await JobSchedulerRunDetailsRepository.getLastRunByStatus(
-      JobSchedulerRunStatus.IN_PROGRESS,
-    );
+  const latestRun = await JobSchedulerRunDetailsRepository.getLastRunDetails();
+  const { jobId, callbackTime } = createdJob;
   if (isJobInBetweenRunningJob()) {
-    const { jobId, callbackTime } = createdJob;
-    const delaySeconds =
-      moment(callbackTime).diff(moment(), 'seconds') > 0
-        ? moment(callbackTime).diff(moment(), 'seconds')
-        : 0;
-    enqueueJob({ jobId }, delaySeconds);
+    enqueueJobWithDelay(jobId, callbackTime);
   }
   return createdJob;
 };
@@ -86,7 +87,7 @@ const handleJob = async (jobId: string): Promise<void> => {
       key1_value: jobId,
       error_message: err.message,
     });
-    await JobRespository.updateJobStatus(jobId, JobStatus.FAILURE);
+    await JobRespository.updateJobStatus(jobId, JobStatus.FAILED);
   }
 };
 
@@ -117,9 +118,9 @@ const triggerCallbacks = async () => {
   );
   Logger.info({
     key1: 'startTime',
-    key1_value: startTime.toString(),
+    key1_value: startTime.toISOString(),
     key2: 'endTime',
-    key2_value: endTime.toString(),
+    key2_value: endTime.toISOString(),
     num_key1: 'size of jobs',
     num_key1_value: jobsBetweenRange?.length ?? 0,
   });
@@ -131,12 +132,7 @@ const triggerCallbacks = async () => {
     ),
   ]);
   jobsBetweenRange?.forEach((job) => {
-    const { jobId, callbackTime } = job;
-    const delaySeconds =
-      moment(callbackTime).diff(moment(), 'seconds') > 0
-        ? moment(callbackTime).diff(moment(), 'seconds')
-        : 0;
-    enqueueJob({ jobId }, delaySeconds);
+    enqueueJobWithDelay(job.jobId, job.callbackTime);
   });
   await JobSchedulerRunDetailsRepository.updateRunStatus(
     startTime,
