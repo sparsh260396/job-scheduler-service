@@ -44,6 +44,7 @@ const scheduleJob = async (
   const latestRun = await JobSchedulerRunDetailsRepository.getLastRunDetails();
   const { jobId, callbackTime } = createdJob;
   if (isJobInBetweenRunningJob()) {
+    await JobRespository.updateJobStatus(jobId, JobStatus.IN_PROGRESS);
     enqueueJobWithDelay(jobId, callbackTime);
   }
   return createdJob;
