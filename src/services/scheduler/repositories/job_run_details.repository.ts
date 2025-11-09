@@ -5,15 +5,16 @@ import {
   JobSchedulerRunStatus,
 } from '../types';
 
-const getLastCompletedRun =
-  async (): Promise<JobSchedulerRunDetails | null> => {
-    return JobSchedulerRunDetailsModel.findOne(
-      {
-        status: JobSchedulerRunStatus.COMPLETED,
-      },
-      { sort: { createdAt: -1 } },
-    );
-  };
+const getLastRunByStatus = async (
+  status: JobSchedulerRunStatus,
+): Promise<JobSchedulerRunDetails | null> => {
+  return JobSchedulerRunDetailsModel.findOne(
+    {
+      status: JobSchedulerRunStatus.COMPLETED,
+    },
+    { sort: { createdAt: -1 } },
+  );
+};
 
 const createRunDetails = async (
   endTime: Date,
@@ -35,14 +36,17 @@ const updateRunStatus = async (
   endTimeStamp: Date,
   status: JobSchedulerRunStatus,
 ) => {
-  JobSchedulerRunDetailsModel.updateMany(
-    { endTimeStamp: { $gte: endTimeStamp } },
+  await JobSchedulerRunDetailsModel.updateMany(
+    {
+      endTimeStamp: { $gte: endTimeStamp },
+      status: JobSchedulerRunStatus.IN_PROGRESS,
+    },
     { status },
   );
 };
 
 export const JobSchedulerRunDetailsRepository = {
-  getLastCompletedRun,
+  getLastRunByStatus,
   createRunDetails,
   updateRunStatus,
 };

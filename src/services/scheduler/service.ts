@@ -16,6 +16,14 @@ import {
 const scheduleJob = async (
   input: ScheduleJobInput,
 ): Promise<ScheduleJobOutput> => {
+  const isJobInBetweenRunningJob = () => {
+    if (isEmpty(latestInProgressRun)) {
+      return false;
+    }
+    const { endTimeStamp } = latestInProgressRun;
+    return moment(callbackTimeStamp).isSameOrBefore(moment(endTimeStamp));
+  };
+
   const { delayInSeconds, url, payload } = input;
   const callbackTimeStamp = moment().add(delayInSeconds, 'second');
   const createdJob = await JobRespository.createJob({
@@ -25,10 +33,17 @@ const scheduleJob = async (
     status: JobStatus.SCHEDULED,
     retryCount: 0,
   });
-  if (delayInSeconds <= THRESHOLD_SECONDS) {
-    // this will need to change
-    // update the status of job to in-progress so it doesn't get picked up by the cron
-    await enqueueJob({ jobId: createdJob.jobId });
+  const latestInProgressRun =
+    await JobSchedulerRunDetailsRepository.getLastRunByStatus(
+      JobSchedulerRunStatus.IN_PROGRESS,
+    );
+  if (isJobInBetweenRunningJob()) {
+    const { jobId, callbackTime } = createdJob;
+    const delaySeconds =
+      moment(callbackTime).diff(moment(), 'seconds') > 0
+        ? moment(callbackTime).diff(moment(), 'seconds')
+        : 0;
+    enqueueJob({ jobId }, delaySeconds);
   }
   return createdJob;
 };
@@ -75,10 +90,10 @@ const handleJob = async (jobId: string): Promise<void> => {
   }
 };
 
-const processJobs = async () => {
+const triggerCallbacks = async () => {
   const getLastCompletedJobTime = (): Date => {
     if (isEmpty(lastCompletedRunDetails)) {
-      return moment('2025-10-08').toDate();
+      return moment('2025-10-07').toDate();
     }
     return lastCompletedRunDetails.endTimeStamp;
   };
@@ -91,21 +106,37 @@ const processJobs = async () => {
     return;
   }
   const lastCompletedRunDetails =
-    await JobSchedulerRunDetailsRepository.getLastCompletedRun();
+    await JobSchedulerRunDetailsRepository.getLastRunByStatus(
+      JobSchedulerRunStatus.COMPLETED,
+    );
   const startTime = getLastCompletedJobTime();
   const endTime = moment().add(THRESHOLD_SECONDS, 'seconds').toDate();
   const jobsBetweenRange = await JobRespository.getScheduledJobBetweenTimeRange(
     startTime,
     endTime,
   );
-  const { runId } =
-    await JobSchedulerRunDetailsRepository.createRunDetails(endTime);
-  await JobRespository.updateJobBulk(
-    jobsBetweenRange.map((job) => job.jobId),
-    JobStatus.IN_PROGRESS,
-  );
-  jobsBetweenRange.forEach((job) => {
-    enqueueJob({ jobId: job.jobId });
+  Logger.info({
+    key1: 'startTime',
+    key1_value: startTime.toString(),
+    key2: 'endTime',
+    key2_value: endTime.toString(),
+    num_key1: 'size of jobs',
+    num_key1_value: jobsBetweenRange?.length ?? 0,
+  });
+  await Promise.all([
+    JobSchedulerRunDetailsRepository.createRunDetails(endTime),
+    JobRespository.updateJobBulk(
+      jobsBetweenRange.map((job) => job.jobId),
+      JobStatus.IN_PROGRESS,
+    ),
+  ]);
+  jobsBetweenRange?.forEach((job) => {
+    const { jobId, callbackTime } = job;
+    const delaySeconds =
+      moment(callbackTime).diff(moment(), 'seconds') > 0
+        ? moment(callbackTime).diff(moment(), 'seconds')
+        : 0;
+    enqueueJob({ jobId }, delaySeconds);
   });
   await JobSchedulerRunDetailsRepository.updateRunStatus(
     startTime,
@@ -113,4 +144,4 @@ const processJobs = async () => {
   );
 };
 
-export const SchedulerService = { scheduleJob, handleJob, processJobs };
+export const SchedulerService = { scheduleJob, handleJob, triggerCallbacks };

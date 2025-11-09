@@ -3,12 +3,16 @@ import { Logger } from '../../../common/logger';
 import { SqsClient } from '../../sqsClient';
 import { JobProcessorInput } from '../../types';
 
-export const enqueueJob = async (payload: JobProcessorInput) => {
+export const enqueueJob = async (
+  payload: JobProcessorInput,
+  delaySeconds: number = 0,
+) => {
   const queueUrl = process.env.SQS_JOB_PROCESSOR_URL!;
   try {
     const command = new SendMessageCommand({
       QueueUrl: queueUrl,
       MessageBody: JSON.stringify(payload),
+      DelaySeconds: delaySeconds,
     });
     const response = await SqsClient.send(command);
     Logger.info({
