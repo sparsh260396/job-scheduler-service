@@ -8,12 +8,9 @@ import {
 const getLastRunByStatus = async (
   status: JobSchedulerRunStatus,
 ): Promise<JobSchedulerRunDetails | null> => {
-  return JobSchedulerRunDetailsModel.findOne(
-    {
-      status: JobSchedulerRunStatus.COMPLETED,
-    },
-    { sort: { createdAt: -1 } },
-  );
+  return JobSchedulerRunDetailsModel.findOne({
+    status,
+  }).sort({ createdAt: -1 });
 };
 
 const createRunDetails = async (
