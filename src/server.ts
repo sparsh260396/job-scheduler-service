@@ -7,13 +7,19 @@ import { startAllConsumers } from './sqs/consumers';
 import { connectDB } from './startup/db';
 
 const PORT = process.env.PORT || 3000;
+const SHOULD_RUN_CONSUMERS = process.env.SHOULD_RUN_CONSUMERS!;
+const SHOULD_RUN_CRONS = process.env.SHOULD_RUN_CRONS!;
 
 const startServer = async () => {
   try {
     await connectDB();
     const app = buildApp();
-    startAllConsumers();
-    startCrons();
+    if (SHOULD_RUN_CONSUMERS === 'true') {
+      startAllConsumers();
+    }
+    if (SHOULD_RUN_CRONS === 'true') {
+      startCrons();
+    }
     const server = app.listen(PORT, () => {
       Logger.info({ message: `Server running on ${PORT}` });
     });
