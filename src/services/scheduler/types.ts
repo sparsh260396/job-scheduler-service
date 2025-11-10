@@ -1,4 +1,4 @@
-interface ScheduleJobInput {
+interface ScheduleJobRequest {
   url: string;
   payload: Object;
   delayInSeconds: number;
@@ -7,7 +7,7 @@ interface ScheduleJobInput {
 
 enum JobStatus {
   SUCCESS = 'success',
-  FAILURE = 'failure',
+  FAILED = 'failed',
   CANCELLED = 'cancelled',
   IN_PROGRESS = 'inProgress',
   SCHEDULED = 'scheduled',
@@ -27,8 +27,48 @@ interface JobDocument {
   url: string;
   status: JobStatus;
   callbackTime: Date;
+  payload: object;
 }
 
-type ScheduleJobOutput = JobDocument;
+enum JobSchedulerRunStatus {
+  IN_PROGRESS = 'inProgress',
+  COMPLETED = 'completed',
+}
 
-export { Job, JobDocument, JobStatus, ScheduleJobInput, ScheduleJobOutput };
+interface JobSchedulerRunDetails {
+  endTimeStamp: Date;
+  status: JobSchedulerRunStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface JobSchedulerRunDetailsDocument {
+  endTimeStamp: Date;
+  status: JobSchedulerRunStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  runId: string;
+}
+
+type ScheduleJobResponse = JobDocument;
+
+interface CancelJobRequest {
+  jobId: string;
+}
+
+interface CancelJobResponse {
+  success: boolean;
+}
+
+export {
+  CancelJobRequest,
+  CancelJobResponse,
+  Job,
+  JobDocument,
+  JobSchedulerRunDetails,
+  JobSchedulerRunDetailsDocument,
+  JobSchedulerRunStatus,
+  JobStatus,
+  ScheduleJobRequest,
+  ScheduleJobResponse,
+};

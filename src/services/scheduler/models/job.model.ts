@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { Job, JobStatus } from './types';
+import { Job, JobStatus } from '../types';
 
 const JobSchema = new Schema<Job>(
   {

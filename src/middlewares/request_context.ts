@@ -32,6 +32,14 @@ const RequestContext = {
   get(key: string): string | undefined {
     return als.getStore()?.[key];
   },
+
+  runWithRequestId<T>(
+    requestId: string,
+    fn: () => Promise<T> | T,
+  ): Promise<T> | T {
+    const store: Store = { requestId };
+    return als.run(store, fn);
+  },
 };
 
 export { RequestContext };

@@ -2,16 +2,20 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import { buildApp } from './app';
 import { Logger } from './common/logger';
+import { startCrons } from './crons';
+import { startAllConsumers } from './sqs/consumers';
 import { connectDB } from './startup/db';
 
 const PORT = process.env.PORT || 3000;
 
-async function startServer() {
+const startServer = async () => {
   try {
     await connectDB();
     const app = buildApp();
+    startAllConsumers();
+    startCrons();
     const server = app.listen(PORT, () => {
-      Logger.info({ message: `Server running on http://localhost:${PORT}` });
+      Logger.info({ message: `Server running on ${PORT}` });
     });
     const shutdown = async (signal: string) => {
       try {
@@ -48,6 +52,6 @@ async function startServer() {
     });
     process.exit(1);
   }
-}
+};
 
 startServer();
