@@ -1,20 +1,38 @@
 import { NextFunction, Request, Response } from 'express';
 import { SchedulerService } from './service';
-import { validateScheduleJobInput } from './validations';
+import {
+  validateCancelJobRequest,
+  validateScheduleJobRequest,
+} from './validations';
 
-export async function scheduleJob(
+const scheduleJob = async (
   request: Request,
   response: Response,
   next: NextFunction,
-) {
+) => {
   try {
     const requestBody = request.body;
-    validateScheduleJobInput(requestBody);
+    validateScheduleJobRequest(requestBody);
     const responseBody = await SchedulerService.scheduleJob(requestBody);
     response.status(201).json(responseBody);
   } catch (err) {
     next(err);
   }
-}
+};
 
-export const SchedulerController = { scheduleJob };
+const cancelJob = async (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) => {
+  try {
+    const requestBody = request.body;
+    validateCancelJobRequest(requestBody);
+    const responseBody = await SchedulerService.cancelJob(requestBody);
+    response.status(201).json(responseBody);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const SchedulerController = { scheduleJob, cancelJob };

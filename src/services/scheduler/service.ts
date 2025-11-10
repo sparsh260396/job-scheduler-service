@@ -7,10 +7,12 @@ import { THRESHOLD_SECONDS } from './constants';
 import { JobRespository } from './repositories/job.repository';
 import { JobSchedulerRunDetailsRepository } from './repositories/job_run_details.repository';
 import {
+  CancelJobRequest,
+  CancelJobResponse,
   JobSchedulerRunStatus,
   JobStatus,
-  ScheduleJobInput,
-  ScheduleJobOutput,
+  ScheduleJobRequest,
+  ScheduleJobResponse,
 } from './types';
 
 const enqueueJobWithDelay = (jobId: string, callbackTime: Date) => {
@@ -22,8 +24,8 @@ const enqueueJobWithDelay = (jobId: string, callbackTime: Date) => {
 };
 
 const scheduleJob = async (
-  input: ScheduleJobInput,
-): Promise<ScheduleJobOutput> => {
+  request: ScheduleJobRequest,
+): Promise<ScheduleJobResponse> => {
   const isJobInBetweenRunningJob = () => {
     if (isEmpty(latestRun)) {
       return false;
@@ -32,7 +34,7 @@ const scheduleJob = async (
     return moment(callbackTimeStamp).isSameOrBefore(moment(endTimeStamp));
   };
 
-  const { delayInSeconds, url, payload } = input;
+  const { delayInSeconds, url, payload } = request;
   const callbackTimeStamp = moment().add(delayInSeconds, 'second');
   const createdJob = await JobRespository.createJob({
     url,
@@ -141,4 +143,49 @@ const triggerCallbacks = async () => {
   );
 };
 
-export const SchedulerService = { scheduleJob, handleJob, triggerCallbacks };
+const cancelJob = async (
+  request: CancelJobRequest,
+): Promise<CancelJobResponse> => {
+  const buildResponse = (success: boolean): CancelJobResponse => {
+    return { success };
+  };
+
+  const { jobId } = request;
+  const job = await JobRespository.findJobById(jobId);
+  if (isEmpty(job)) {
+    Logger.error({
+      message: 'no job found',
+      key1: 'jobId',
+      key1_value: jobId,
+    });
+    return buildResponse(false);
+  }
+  const { status } = job;
+  if (status === JobStatus.CANCELLED) {
+    Logger.error({
+      message: 'job already cancelled',
+      key1: 'jobId',
+      key1_value: jobId,
+    });
+    return buildResponse(false);
+  }
+  if (status === JobStatus.SUCCESS) {
+    Logger.error({
+      message: 'completed job cannot be cancelled',
+      key1: 'jobId',
+      key1_value: jobId,
+    });
+    return buildResponse(false);
+  }
+  await JobRespository.updateJobStatus(jobId, JobStatus.CANCELLED);
+  return {
+    success: true,
+  };
+};
+
+export const SchedulerService = {
+  scheduleJob,
+  handleJob,
+  triggerCallbacks,
+  cancelJob,
+};

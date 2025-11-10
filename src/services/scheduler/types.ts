@@ -1,4 +1,4 @@
-interface ScheduleJobInput {
+interface ScheduleJobRequest {
   url: string;
   payload: Object;
   delayInSeconds: number;
@@ -50,15 +50,25 @@ interface JobSchedulerRunDetailsDocument {
   runId: string;
 }
 
-type ScheduleJobOutput = JobDocument;
+type ScheduleJobResponse = JobDocument;
+
+interface CancelJobRequest {
+  jobId: string;
+}
+
+interface CancelJobResponse {
+  success: boolean;
+}
 
 export {
+  CancelJobRequest,
+  CancelJobResponse,
   Job,
   JobDocument,
   JobSchedulerRunDetails,
+  JobSchedulerRunDetailsDocument,
   JobSchedulerRunStatus,
   JobStatus,
-  ScheduleJobInput,
-  ScheduleJobOutput,
-  JobSchedulerRunDetailsDocument,
+  ScheduleJobRequest,
+  ScheduleJobResponse,
 };
