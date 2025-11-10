@@ -15,6 +15,7 @@ RUN npm ci --prefer-offline --no-audit --no-fund
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
+RUN npm prune --omit=dev
 
 # Stage 2: Production runtime (only prod deps + dist)
 FROM node:22-alpine AS runner
@@ -23,12 +24,8 @@ ENV NODE_ENV=production
 ENV HUSKY=0
 WORKDIR /app
 
-# Install only production dependencies for a smaller image
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
-
-# Copy compiled output from builder
-COPY --from=builder /app/dist ./dist
+# Copy production node_modules from builder (already pruned)
+COPY --from=builder /app ./
 
 # Use non-root user provided by the Node image
 USER node
