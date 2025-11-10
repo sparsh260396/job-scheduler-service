@@ -102,13 +102,6 @@ const triggerCallbacks = async () => {
     return lastCompletedRunDetails.endTimeStamp;
   };
 
-  const shouldRunCron = process.env.SHOULD_RUN_PROCESS_JOB_CRON!;
-  if (!shouldRunCron) {
-    Logger.warning({
-      message: 'process job cron not allowed to run',
-    });
-    return;
-  }
   const lastCompletedRunDetails =
     await JobSchedulerRunDetailsRepository.getLastRunByStatus(
       JobSchedulerRunStatus.COMPLETED,
